@@ -7,13 +7,15 @@
 <body>
     <h1>Examples</h1>
     <ul>
-      <%for(var link in urls) { %>
-        <form method="POST" action="/urls/9sm5xK/delete">
-        <%=link%> - <%=urls[link]%> 
-        <input type="submit" value="Delete">
+      <%for(var link in urls.urls) { %>
+        <form method="POST" action="/urls/<%=link%>/delete">
+        <%=link%> - <%=urls.urls[link]%> 
+        </br><input type="submit" value="Delete">
+        </form>
+        <form method="POST" action="/urls/redirect/<%=link%>">
+        <input type="submit" value="Edit">
         </form>
       <% } %>
     </ul>
-    <a href="www.google.com">Shorten your link</a>
 </body>
 </html>
