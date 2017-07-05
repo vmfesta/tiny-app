@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>TinyApp</title>
+  <%include ../views/partials/_header%>
+</head>
+<body>
+    <h1>Examples</h1>
+    <ul>
+      <%for(var link in urls) { %>
+        <form method="POST" action="/urls/9sm5xK/delete">
+        <%=link%> - <%=urls[link]%> 
+        <input type="submit" value="Delete">
+        </form>
+      <% } %>
+    </ul>
+    <a href="www.google.com">Shorten your link</a>
+</body>
+</html>
