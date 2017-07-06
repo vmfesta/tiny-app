@@ -1,4 +1,5 @@
 var express = require("express");
+const bcrypt = require('bcrypt');
 var cookieParser = require('cookie-parser')
 var app = express();
 app.use(cookieParser())
@@ -10,9 +11,15 @@ app.set("view engine", "ejs");
 
 var urlDatabase = {
   urls: {
-    "b2xVn2": "http://www.lighthouselabs.ca",
-    "9sm5xK": "http://www.google.com"
-  },
+    "b2xVn2": {
+      long: "http://www.lighthouselabs.ca",
+      users: ["id1"]
+    },
+    "9sm5xK": {
+      long: "http://www.google.com",
+      users: []
+    }
+  }
 };
 
 var totalUsers = 2;
@@ -21,7 +28,7 @@ const users = {
   id1: {
     id: "id1",
     email: "test@test.com",
-    password: "1"
+    password: "1" 
   },
   id2: {
     id: "id2",
@@ -30,9 +37,20 @@ const users = {
   }
 };
 
+app.get("/", (req, res) => {
+  const id = req.cookies['user_id'];
+  let user = searchUsername(id)
+  if(user) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
+});
+
 app.post("/urls/:id/update", (req, res) => {
   let short = req.params.id
-  urlDatabase[short] = req.body.longURL;
+  let users = urlDatabase.urls.users;
+  urlDatabase.urls[short].long = req.body.longURL;
   res.redirect("/urls");
 });
 
@@ -41,31 +59,41 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  for (let id in users) {
-    let user = users[id];
-      if(user.email === req.body.email) {
-        if(user.password === req.body.password) {
-          res.cookie('user_id', user.id);
-          res.redirect("/urls");
-        }  
-      }
+  var auth = validateLogin(req.body.email, req.body.password);
+  if(auth.valid) {
+    res.cookie('user_id', auth.id);
+    res.redirect("/urls");
   }
   res.statusCode = 403;
   res.redirect("/login");
 });
 
 app.get("/urls", (req, res) => {
-  let user = searchUsername(req.cookies["user_id"]);
-  console.log(user);
-  let templateVars = { 
-    urls: urlDatabase,
-    user:user
-  };
-  res.render("urls_index", templateVars);
+  const id = req.cookies["user_id"];
+  if(id) {
+    let user = searchUsername(id);
+    let urls = urlsForUser(user.id);
+    let templateVars = { 
+      urls,
+      user:user
+    };
+    res.render("urls_index", templateVars);
+  } else {
+    res.redirect("/register");
+  }
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  // console.log(req.cookies['user_id']);
+  // debugger;
+  if(req.cookies['user_id']) {
+    const id = req.cookies['user_id'];
+    let user = searchUsername(id)
+    templateVars = { user: user };
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login"); 
+  }
 });
 
 
@@ -75,15 +103,24 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
+  debugger;
   let url = req.body
   let short = generateRandomString();
-  urlDatabase[short] = url.longURL;
+  let id = req.cookies['user_id'];
+  let link = {
+    short: short,
+    long: url,
+    user: [id]
+  }
+  urlDatabase.urls[short] = link;
+
   res.redirect(`http://localhost:8080/urls/${short}`);
 });
 
 app.post("/urls/:id/delete", (req, res) => {
+  console.log(req.params);
   var short = req.params.id;
-  delete urlDatabase[short];
+  delete urlDatabase.urls[short];
   res.redirect("/urls");
 });
 
@@ -95,11 +132,11 @@ app.post("/urls/redirect/:id", (req, res) => {
 app.post("/logout", (req, res) => {
   urlDatabase.username = "";
   res.clearCookie('user_id');
-  res.redirect(`/urls/`);
+  res.redirect(`/login`);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
+  let longURL = urlDatabase.urls[req.params.shortURL].long;
   res.redirect(longURL);
 });
 
@@ -108,45 +145,41 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  if(!req.body.email || !req.body.password) {
+  if(!req.body.username || !req.body.password) {
     res.statusCode = 400;
     res.redirect("/register");   
-  }
-  if(!req.body.email) {
-    res.statusCode = 400;
-    res.redirect("/register");   
-  }
-  
-  let email = req.body.email;
-  let pass = req.body.password;
-  let id = generateId();
-  for (var ids in users) {
-    if (users.hasOwnProperty(ids)) {
-      var newUser = users[ids];
-      if(newUser.email === email) {
-        res.statusCode = 400;
-        res.redirect("/register");
+  } else {
+    let email = req.body.username;
+    const pass = bcrypt.hashSync(req.body.password, 10);
+    console.log(pass);
+    let id = generateId();
+    for (var ids in users) {
+      if (users.hasOwnProperty(ids)) {
+        var newUser = users[ids];
+        if(newUser.email === email) {
+          res.statusCode = 400;
+          res.redirect("/register");
+        } else {
+          let user = {
+            id: id,
+            email: email,
+            password: pass,
+          }
+          users[id] = user;
+          console.log(users);
+          res.cookie('user_id', user.id);
+          res.redirect(`/urls`);
+        }
       }
     }
   }
-  
-  let user = {
-    id: id,
-    email: email,
-    password: pass,
-  }
-
-  users[id] = (user);
-  res.cookie('username', email);
-  res.redirect(`/urls`);
 });
 
 function searchUsername(id) {
-  console.log(id);
+  //console.log(id);
   for (var userId in users) {
     if (users.hasOwnProperty(userId)) {
       var user = users[userId];
-      console.log(user);
       if(user.id === id) {
         return user;
       }
@@ -154,6 +187,22 @@ function searchUsername(id) {
   }
   return;
 }
+
+function validateLogin(username, pass) {
+  for (let id in users) {
+      let user = users[id];
+        if(user.email === username) {
+          if(bcrypt.compareSync(pass, user.password)) {
+            return auth = {
+              id: user.id,
+              valid: true
+            }
+          }  
+        }
+    }
+    return false;
+}
+
 
 function generateRandomString() {
   let text = "";
@@ -163,6 +212,32 @@ function generateRandomString() {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
 
   return text;
+}
+
+function urlsForUser(id) {
+  debugger;
+  let arr = [];
+  console.log(id);
+  for (var urls in urlDatabase.urls) {
+    if (urlDatabase.urls.hasOwnProperty(urls)) {
+      let url = urlDatabase.urls[urls];
+      console.log(url);
+      if(url.users.indexOf(id) > -1) {
+        console.log(urls);
+        console.log(url.long);
+        let link = {
+          short: urls,
+          long: url.long
+        }
+        arr.push(link);
+        console.log(link);
+      }
+      // url.users.forEach(function(rId) {
+      //   if(rId === id) arr.push(id);        
+      // });
+    }
+  }
+  return arr;
 }
 
 function generateId() {

@@ -7,12 +7,12 @@
 <body style="font-size:20px;">
     <h1>URLS</h1>
     <ul>
-      <%for(var link in urls.urls) { %>
-        <form method="POST" action="/urls/<%=link%>/delete">
-        <%=link%> - <%=urls.urls[link]%> 
+      <%for(var link in urls) { %>
+        <form method="POST" action="/urls/<%=urls[link].short%>/delete">
+        <%=urls[link].short%> - <%=urls[link].long%> 
         <input type="submit" value="Delete">
         </form>
-        <form method="POST" action="/urls/redirect/<%=link%>">
+        <form method="POST" action="/urls/redirect/<%=urls[link].short%>">
         <input type="submit" value="Edit">
         </form>
       <% } %>
