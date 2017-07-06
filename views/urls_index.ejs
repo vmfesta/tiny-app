@@ -4,13 +4,13 @@
   <title>TinyApp</title>
   <%include ../views/partials/_header%>
 </head>
-<body>
-    <h1>Examples</h1>
+<body style="font-size:20px;">
+    <h1>URLS</h1>
     <ul>
       <%for(var link in urls.urls) { %>
         <form method="POST" action="/urls/<%=link%>/delete">
         <%=link%> - <%=urls.urls[link]%> 
-        </br><input type="submit" value="Delete">
+        <input type="submit" value="Delete">
         </form>
         <form method="POST" action="/urls/redirect/<%=link%>">
         <input type="submit" value="Edit">

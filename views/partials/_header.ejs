@@ -1,11 +1,11 @@
-<h2>Header</h2>
-    <% if(username) { %>
-        <h3><%=username.username%><h3>
+<h1>Tiny App</h1>
+    <% if(locals.user) { %>
         <form action="/logout" method="POST">
-        <input type="submit" value="Logout">
-    <% } else { %>
-        <form action="/login" method="POST">
-            <input id="username" type="text" name="username" placeholder="" style="width: 100px">
-            <input type="submit" value="Login">
+            <label><%=user.email%><label>
+            <input type="submit" value="Logout">
         </form>
+    <% } else { %>
+            <a href="/urls">Home</a>
+            <a href="/login" style="margin:10px;">Login</a>
+            <a href="/register" style="margin:10px;">Sign Up</a>
     <% } %>
