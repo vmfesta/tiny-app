@@ -9,7 +9,7 @@
     </br></br>
     <label style="font-size:30px;">ShortURL: <label>
     <label><%=shortURL%></label>
-    <form action="/urls/<%= shortURL %>/update" method="POST">
+    <form action="/urls/<%= shortURL %>/update?_method=PUT" method="POST">
       <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
       <input type="submit" value="Update">
     </form>

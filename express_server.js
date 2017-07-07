@@ -1,5 +1,6 @@
 var express = require("express");
 const bcrypt = require('bcrypt');
+const methodOverride = require('method-override')
 const cookieParser = require('cookie-parser');
 var cookieSession  = require('cookie-session');
 var Cookies = require( "cookies" );
@@ -12,6 +13,7 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
+app.use(methodOverride('_method'));
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 var PORT = process.env.PORT || 8080;
@@ -57,8 +59,14 @@ app.get("/", (req, res) => {
   }
 });
 
+app.post("/urls/redirect/:id", (req, res) => {
+   var short = req.params.id;
+   res.redirect(`/urls/${short}`);
+});
+
 //POST action that receives a short ID and update the long URL
-app.post("/urls/:id/update", (req, res) => {
+app.put("/urls/:id/update", (req, res) => {
+  debugger;
   let short = req.params.id
   let users = urlDatabase.urls.users;
   urlDatabase.urls[short].long = {longURL: req.body.longURL};
@@ -130,7 +138,7 @@ app.post("/urls", (req, res) => {
 });
 
 //POST action to delete the URL if the user clicks on delete
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id/delete", (req, res) => {
   console.log(req.params);
   var short = req.params.id;
   delete urlDatabase.urls[short];

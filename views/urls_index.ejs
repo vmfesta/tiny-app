@@ -8,7 +8,7 @@
     <h1>URLS</h1>
     <ul>
       <%for(var link in urls) { %>
-        <form method="POST" action="/urls/<%=urls[link].short%>/delete">
+        <form method="POST" action="/urls/<%=urls[link].short%>/delete?_method=DELETE">
         <%=urls[link].short%> - <%=urls[link].long%> 
         <input type="submit" value="Delete">
         </form>
