@@ -73,7 +73,6 @@ app.post("/urls/redirect/:id", (req, res) => {
 
 //POST action that receives a short ID and update the long URL
 app.put("/urls/:id/update", (req, res) => {
-  debugger;
   let short = req.params.id
   let users = urlDatabase.urls.users;
   urlDatabase.urls[short].long = {longURL: req.body.longURL};
@@ -138,7 +137,6 @@ app.get("/urls/:id", (req, res) => {
     usersVisited,
     total
    };
-   console.log(templateVars);
   res.render("urls_show", templateVars);
 });
 
@@ -158,7 +156,6 @@ app.post("/urls", (req, res) => {
 
 //POST action to delete the URL if the user clicks on delete
 app.delete("/urls/:id/delete", (req, res) => {
-  console.log(req.params);
   var short = req.params.id;
   delete urlDatabase.urls[short];
   res.redirect("/urls");
@@ -173,7 +170,6 @@ app.post("/logout", (req, res) => {
 
 //redirects the user to the full url page
 app.get("/u/:shortURL", (req, res) => {
-  debugger;
   let longURL = urlDatabase.urls[req.params.shortURL].long.longURL;
   req.session.visitorId = generateId();
   if(!visitors[req.params.shortURL]) {
@@ -187,7 +183,6 @@ app.get("/u/:shortURL", (req, res) => {
   } else {
     visitors[req.params.shortURL].total += 1;
   }
-  console.log(longURL);
   res.redirect(longURL);
 });
 
