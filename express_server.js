@@ -33,6 +33,13 @@ var urlDatabase = {
   }
 };
 
+var visitors = {
+  url: {
+    visitors: [],
+    total: 0
+  }
+}
+
 var totalUsers = 2;
 
 const users = {
@@ -119,7 +126,19 @@ app.get("/urls/new", (req, res) => {
 
 //receives the short url and show the url page to the user be able to edit it
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id };
+  if(!visitors[req.params.id]) {
+    usersVisited = 0;
+    total = 0;
+  } else {
+    usersVisited = visitors[req.params.id].visitors.length;
+    total = visitors[req.params.id].total;
+  }
+  let templateVars = { 
+    shortURL: req.params.id,
+    usersVisited,
+    total
+   };
+   console.log(templateVars);
   res.render("urls_show", templateVars);
 });
 
@@ -154,7 +173,21 @@ app.post("/logout", (req, res) => {
 
 //redirects the user to the full url page
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase.urls[req.params.shortURL].long;
+  debugger;
+  let longURL = urlDatabase.urls[req.params.shortURL].long.longURL;
+  req.session.visitorId = generateId();
+  if(!visitors[req.params.shortURL]) {
+    visitors[req.params.shortURL] = [];
+  }
+  if(visitors[req.params.shortURL].indexOf(req.session.visitorId) === -1) {
+    visitors[req.params.shortURL].push(req.session.visitorId);
+  } 
+  if(isNaN(visitors[req.params.shortURL]['total'])) {
+    visitors[req.params.shortURL]['total'] = 1
+  } else {
+    visitors[req.params.shortURL].total += 1;
+  }
+  console.log(longURL);
   res.redirect(longURL);
 });
 

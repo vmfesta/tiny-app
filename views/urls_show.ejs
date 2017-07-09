@@ -9,6 +9,8 @@
     </br></br>
     <label style="font-size:30px;">ShortURL: <label>
     <label><%=shortURL%></label>
+    </br>
+    <label>Total visitors:<%=total%> - Unique visitors:<%=usersVisited%></label>
     <form action="/urls/<%= shortURL %>/update?_method=PUT" method="POST">
       <input id="longURL" type="text" name="longURL" placeholder="http://" style="width: 300px">
       <input type="submit" value="Update">
